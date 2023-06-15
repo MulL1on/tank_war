@@ -1,0 +1,37 @@
+syntax = "proto3";
+package game;
+option go_package = "/quic";
+
+import "proto/quic/tank.proto";
+import "proto/quic/bullet.proto";
+import "proto/quic/world.proto";
+
+
+
+message Action {
+  oneof type {
+    TankMove tankMove = 1;
+    GetBulletList getBulletList = 4;
+    TankRemove tankRemove = 5;
+    BulletRemove bulletRemove = 6;
+    GetTankList getTankList = 7;
+    GetRockList getRockList = 8;
+    NewBullet newBullet = 9;
+    GetExplosionList getExplosionList = 10;
+  }
+}
+
+message ActionList {
+  repeated Action actions = 1;
+}
+
+
+//message Init {
+//  NewTankList newTankList = 1;
+//  NewRockList newRockList = 2;
+//}
+
+
+
+
+

@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package game;
+option go_package = "/quic";
+
+message NewBullet {
+  int32 id = 1;
+  int32 x = 2;
+  int32 y = 3;
+  int32 tankId = 4;
+  int32 direction = 5;
+}
+
+message Bullet {
+  int32 id = 1;
+  int32 x = 2;
+  int32 y = 3;
+}
+
+message GetBulletList {
+  repeated Bullet bullet = 1;
+}
+
+message BulletRemove {
+  int32 id = 1;
+}

@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package game;
+option go_package = "/quic";
+
+message Rock {
+  int32 x = 2;
+  int32 y = 3;
+  int32 width = 4;
+  int32 height = 5;
+}
+
+message GetRockList {
+  repeated Rock rock = 1;
+}
+
+message NewExplosion {
+  int32 x = 2;
+  int32 y = 3;
+}
+
+message NewExplosionList {
+  repeated NewExplosion explosionBorn = 1;
+}
+
+message explosion {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+message GetExplosionList {
+  repeated explosion explosion = 1;
+}

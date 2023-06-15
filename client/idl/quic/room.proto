@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package game;
+option go_package = "/quic";
+
+
+message JoinRoomReq {
+    string room_id = 1;
+    string token = 2;
+}
+
+message JoinRoomResp {
+    int64 clientId = 1;
+}
+
+

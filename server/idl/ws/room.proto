@@ -1,0 +1,83 @@
+syntax = "proto3";
+package lobby;
+import "server/proto/ws/player.proto";
+
+
+option go_package = "/lobby";
+
+
+//通过名字区分房间，房间名字唯一
+message Room {
+  string name = 1;
+  int32 max_players = 2;
+  int32 current_players = 3;
+}
+
+message NewRoomAgentRequest {
+  string name = 1;
+  int32 max_players = 2;
+}
+
+message NewRoomAgentResponse {
+  string name = 1;
+  int32 room_id = 2;
+  int32 server_address = 3;
+  int32 max_players = 4;
+}
+
+message NewRoomGameRequest {
+}
+
+
+message NewRoomGameResponse {
+  int32 room_id = 2;
+  int32 server_address = 3;
+}
+
+
+message JoinRoomRequest {
+  Player player = 1;
+  string name = 2;
+}
+
+message LeaveRoomRequest {
+  Player player = 1;
+}
+
+message LeaveRoomResponse {
+}
+
+message GetRoomListRequest {
+}
+
+message GetRoomListResponse {
+  repeated Room rooms = 1;
+ }
+
+message GetRoomRequest{
+  string name=1;
+}
+
+ message GetRoomResponse{
+  string name=1;
+  repeated  Player players = 2;
+  int32 max_players = 3;
+  int32 current_players = 4;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
