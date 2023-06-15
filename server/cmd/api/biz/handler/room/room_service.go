@@ -5,10 +5,13 @@ package room
 import (
 	"context"
 	"encoding/json"
+	"github.com/bwmarrin/snowflake"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/go-redis/redis/v8"
 	"github.com/hashicorp/consul/api"
+	"net"
 	"net/http"
+	"strconv"
 	"tank_war/server/cmd/api/biz/model/base"
 	"tank_war/server/cmd/api/biz/model/room"
 	"tank_war/server/cmd/api/config"
@@ -43,18 +46,55 @@ func CreateRoom(ctx context.Context, c *app.RequestContext) {
 		MaxPlayer:     req.MaxPlayer,
 		CurrentPlayer: 1,
 	}
-	jsonData, err := json.Marshal(r)
-	if err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
 
-	err = config.Rdb.HSet(ctx, consts.Room, req.Name, jsonData).Err()
+	cfg := api.DefaultConfig()
+	cfg.Address = net.JoinHostPort(
+		config.GlobalConsulConfig.Host,
+		strconv.Itoa(config.GlobalConsulConfig.Port))
+
+	client, err := api.NewClient(cfg)
+
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	services, _, err := client.Catalog().Service(consts.GameServer, "", nil)
+	if err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	sf, err := snowflake.NewNode(4)
+	if err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	for _, service := range services {
+		if service.ServiceMeta["status"] == "free" {
+			r.Host = service.Address
+			r.Port = int32(service.ServicePort)
+			r.RoomID = sf.Generate().Int64()
+
+			//保存房间信息到redis
+			jsonData, err := json.Marshal(r)
+			if err != nil {
+				c.String(http.StatusInternalServerError, err.Error())
+				return
+			}
+
+			err = config.Rdb.HSet(ctx, consts.Room, req.Name, jsonData).Err()
+			if err != nil {
+				c.String(http.StatusInternalServerError, err.Error())
+				return
+			}
+
+			resp.RoomID = r.RoomID
+			resp.Host = r.Host
+			resp.Port = r.Port
+			c.JSON(http.StatusOK, resp)
+			return
+		}
+	}
+	c.JSON(http.StatusInternalServerError, "game server not found")
 }
 
 // JoinRoom .
@@ -80,6 +120,14 @@ func JoinRoom(ctx context.Context, c *app.RequestContext) {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	//判断房间是否已满
+	if r.CurrentPlayer >= r.MaxPlayer {
+		c.String(http.StatusInternalServerError, "room is full")
+		return
+	}
+
+	//更新房间信息
 	r.CurrentPlayer++
 
 	jsonData, err = json.Marshal(r)
@@ -90,30 +138,12 @@ func JoinRoom(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 	resp := new(room.JoinRoomResp)
+	resp.RoomID = r.RoomID
+	resp.Address = r.Host
+	resp.Port = r.Port
 
-	//TODO: get a free quic server address and port
-	config := api.DefaultConfig()
-	client, err := api.NewClient(config)
-	if err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-	services, _, err := client.Catalog().Service(consts.GameServer, "", nil)
-	if err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
+	c.JSON(http.StatusOK, resp)
 
-	for _, service := range services {
-		if service.ServiceMeta["status"] == "free" {
-			resp.Address = service.Address
-			resp.Port = int32(service.ServicePort)
-			c.JSON(http.StatusOK, resp)
-			return
-		}
-	}
-
-	c.JSON(http.StatusInternalServerError, "quic server not found")
 }
 
 // GetRoomList .

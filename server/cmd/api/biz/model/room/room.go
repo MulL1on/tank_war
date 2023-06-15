@@ -10,7 +10,7 @@ import (
 )
 
 type CreateRoomReq struct {
-	Name      string `thrift:"name,1,required" form:"name,required" json:"name,required" query:"name,required"`
+	Name      string `thrift:"name,1,required" form:"name,required" json:"name,required" query:"name,required" vd:"len($)>0 && lne($)<33"`
 	MaxPlayer int32  `thrift:"max_player,2,required" form:"max_player,required" json:"max_player,required" query:"max_player,required"`
 }
 
@@ -208,35 +208,40 @@ func (p *CreateRoomReq) String() string {
 }
 
 type CreateRoomResp struct {
-	BaseResp *base.BaseResponse `thrift:"base_resp,1,required" form:"base_resp,required" json:"base_resp,required" query:"base_resp,required"`
+	Host   string `thrift:"host,1,required" form:"host,required" json:"host,required" query:"host,required"`
+	Port   int32  `thrift:"port,2,required" form:"port,required" json:"port,required" query:"port,required"`
+	RoomID int64  `thrift:"room_id,3,required" form:"room_id,required" json:"room_id,required" query:"room_id,required"`
 }
 
 func NewCreateRoomResp() *CreateRoomResp {
 	return &CreateRoomResp{}
 }
 
-var CreateRoomResp_BaseResp_DEFAULT *base.BaseResponse
+func (p *CreateRoomResp) GetHost() (v string) {
+	return p.Host
+}
 
-func (p *CreateRoomResp) GetBaseResp() (v *base.BaseResponse) {
-	if !p.IsSetBaseResp() {
-		return CreateRoomResp_BaseResp_DEFAULT
-	}
-	return p.BaseResp
+func (p *CreateRoomResp) GetPort() (v int32) {
+	return p.Port
+}
+
+func (p *CreateRoomResp) GetRoomID() (v int64) {
+	return p.RoomID
 }
 
 var fieldIDToName_CreateRoomResp = map[int16]string{
-	1: "base_resp",
-}
-
-func (p *CreateRoomResp) IsSetBaseResp() bool {
-	return p.BaseResp != nil
+	1: "host",
+	2: "port",
+	3: "room_id",
 }
 
 func (p *CreateRoomResp) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
-	var issetBaseResp bool = false
+	var issetHost bool = false
+	var issetPort bool = false
+	var issetRoomID bool = false
 
 	if _, err = iprot.ReadStructBegin(); err != nil {
 		goto ReadStructBeginError
@@ -253,11 +258,33 @@ func (p *CreateRoomResp) Read(iprot thrift.TProtocol) (err error) {
 
 		switch fieldId {
 		case 1:
-			if fieldTypeId == thrift.STRUCT {
+			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField1(iprot); err != nil {
 					goto ReadFieldError
 				}
-				issetBaseResp = true
+				issetHost = true
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetPort = true
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetRoomID = true
 			} else {
 				if err = iprot.Skip(fieldTypeId); err != nil {
 					goto SkipFieldError
@@ -277,8 +304,18 @@ func (p *CreateRoomResp) Read(iprot thrift.TProtocol) (err error) {
 		goto ReadStructEndError
 	}
 
-	if !issetBaseResp {
+	if !issetHost {
 		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetPort {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetRoomID {
+		fieldId = 3
 		goto RequiredFieldNotSetError
 	}
 	return nil
@@ -300,9 +337,28 @@ RequiredFieldNotSetError:
 }
 
 func (p *CreateRoomResp) ReadField1(iprot thrift.TProtocol) error {
-	p.BaseResp = base.NewBaseResponse()
-	if err := p.BaseResp.Read(iprot); err != nil {
+	if v, err := iprot.ReadString(); err != nil {
 		return err
+	} else {
+		p.Host = v
+	}
+	return nil
+}
+
+func (p *CreateRoomResp) ReadField2(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		p.Port = v
+	}
+	return nil
+}
+
+func (p *CreateRoomResp) ReadField3(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		p.RoomID = v
 	}
 	return nil
 }
@@ -315,6 +371,14 @@ func (p *CreateRoomResp) Write(oprot thrift.TProtocol) (err error) {
 	if p != nil {
 		if err = p.writeField1(oprot); err != nil {
 			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
 			goto WriteFieldError
 		}
 
@@ -337,10 +401,10 @@ WriteStructEndError:
 }
 
 func (p *CreateRoomResp) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("base_resp", thrift.STRUCT, 1); err != nil {
+	if err = oprot.WriteFieldBegin("host", thrift.STRING, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := p.BaseResp.Write(oprot); err != nil {
+	if err := oprot.WriteString(p.Host); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -353,6 +417,40 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
+func (p *CreateRoomResp) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("port", thrift.I32, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI32(p.Port); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *CreateRoomResp) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("room_id", thrift.I64, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.RoomID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
 func (p *CreateRoomResp) String() string {
 	if p == nil {
 		return "<nil>"
@@ -361,7 +459,7 @@ func (p *CreateRoomResp) String() string {
 }
 
 type JoinRoomReq struct {
-	Name string `thrift:"name,1,required" form:"name,required" json:"name,required" query:"name,required"`
+	Name string `thrift:"name,1,required" form:"name,required" json:"name,required" query:"name,required" vd:"len($)>0 && lne($)<33"`
 }
 
 func NewJoinRoomReq() *JoinRoomReq {
@@ -506,7 +604,7 @@ func (p *JoinRoomReq) String() string {
 }
 
 type JoinRoomResp struct {
-	RoomID  int32  `thrift:"room_id,1,required" form:"room_id,required" json:"room_id,required" query:"room_id,required"`
+	RoomID  int64  `thrift:"room_id,1,required" form:"room_id,required" json:"room_id,required" query:"room_id,required"`
 	Address string `thrift:"address,2,required" form:"address,required" json:"address,required" query:"address,required"`
 	Port    int32  `thrift:"port,3,required" form:"port,required" json:"port,required" query:"port,required"`
 }
@@ -515,7 +613,7 @@ func NewJoinRoomResp() *JoinRoomResp {
 	return &JoinRoomResp{}
 }
 
-func (p *JoinRoomResp) GetRoomID() (v int32) {
+func (p *JoinRoomResp) GetRoomID() (v int64) {
 	return p.RoomID
 }
 
@@ -556,7 +654,7 @@ func (p *JoinRoomResp) Read(iprot thrift.TProtocol) (err error) {
 
 		switch fieldId {
 		case 1:
-			if fieldTypeId == thrift.I32 {
+			if fieldTypeId == thrift.I64 {
 				if err = p.ReadField1(iprot); err != nil {
 					goto ReadFieldError
 				}
@@ -635,7 +733,7 @@ RequiredFieldNotSetError:
 }
 
 func (p *JoinRoomResp) ReadField1(iprot thrift.TProtocol) error {
-	if v, err := iprot.ReadI32(); err != nil {
+	if v, err := iprot.ReadI64(); err != nil {
 		return err
 	} else {
 		p.RoomID = v
@@ -699,10 +797,10 @@ WriteStructEndError:
 }
 
 func (p *JoinRoomResp) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("room_id", thrift.I32, 1); err != nil {
+	if err = oprot.WriteFieldBegin("room_id", thrift.I64, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteI32(p.RoomID); err != nil {
+	if err := oprot.WriteI64(p.RoomID); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {

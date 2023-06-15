@@ -11,6 +11,9 @@ type Room struct {
 	Name          string `thrift:"name,1" form:"name" json:"name" query:"name"`
 	MaxPlayer     int32  `thrift:"max_player,3" form:"max_player" json:"max_player" query:"max_player"`
 	CurrentPlayer int32  `thrift:"current_player,4" form:"current_player" json:"current_player" query:"current_player"`
+	Host          string `thrift:"host,5" form:"host" json:"host" query:"host"`
+	Port          int32  `thrift:"port,6" form:"port" json:"port" query:"port"`
+	RoomID        int64  `thrift:"room_id,7" form:"room_id" json:"room_id" query:"room_id"`
 }
 
 func NewRoom() *Room {
@@ -29,10 +32,25 @@ func (p *Room) GetCurrentPlayer() (v int32) {
 	return p.CurrentPlayer
 }
 
+func (p *Room) GetHost() (v string) {
+	return p.Host
+}
+
+func (p *Room) GetPort() (v int32) {
+	return p.Port
+}
+
+func (p *Room) GetRoomID() (v int64) {
+	return p.RoomID
+}
+
 var fieldIDToName_Room = map[int16]string{
 	1: "name",
 	3: "max_player",
 	4: "current_player",
+	5: "host",
+	6: "port",
+	7: "room_id",
 }
 
 func (p *Room) Read(iprot thrift.TProtocol) (err error) {
@@ -77,6 +95,36 @@ func (p *Room) Read(iprot thrift.TProtocol) (err error) {
 		case 4:
 			if fieldTypeId == thrift.I32 {
 				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 6:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField6(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 7:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField7(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else {
@@ -141,6 +189,33 @@ func (p *Room) ReadField4(iprot thrift.TProtocol) error {
 	return nil
 }
 
+func (p *Room) ReadField5(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		p.Host = v
+	}
+	return nil
+}
+
+func (p *Room) ReadField6(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		p.Port = v
+	}
+	return nil
+}
+
+func (p *Room) ReadField7(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		p.RoomID = v
+	}
+	return nil
+}
+
 func (p *Room) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
 	if err = oprot.WriteStructBegin("Room"); err != nil {
@@ -157,6 +232,18 @@ func (p *Room) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField4(oprot); err != nil {
 			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+		if err = p.writeField6(oprot); err != nil {
+			fieldId = 6
+			goto WriteFieldError
+		}
+		if err = p.writeField7(oprot); err != nil {
+			fieldId = 7
 			goto WriteFieldError
 		}
 
@@ -227,6 +314,57 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+
+func (p *Room) writeField5(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("host", thrift.STRING, 5); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Host); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+
+func (p *Room) writeField6(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("port", thrift.I32, 6); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI32(p.Port); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
+}
+
+func (p *Room) writeField7(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("room_id", thrift.I64, 7); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.RoomID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 end error: ", p), err)
 }
 
 func (p *Room) String() string {
