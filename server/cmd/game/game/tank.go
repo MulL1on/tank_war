@@ -3,7 +3,7 @@ package game
 type Tank struct {
 	X         int32
 	Y         int32
-	Id        int32
+	Id        int64
 	Direction rune
 	IsLoading bool
 
@@ -12,7 +12,7 @@ type Tank struct {
 	Kill  int32
 }
 
-func (g *Game) NewTank(id int32) {
+func (g *Game) NewTank(id int64) {
 	t := &Tank{
 		X:         1,
 		Y:         1,
@@ -23,7 +23,11 @@ func (g *Game) NewTank(id int32) {
 	g.TankBucket[id] = t
 }
 
-func (g *Game) TankMove(id, direction int32) {
+func (g *Game) TankMove(id int64, direction int32) {
+	_, ok := g.TankBucket[id]
+	if !ok {
+		return
+	}
 	g.TankBucket[id].Direction = direction
 	switch direction {
 	case '↑':

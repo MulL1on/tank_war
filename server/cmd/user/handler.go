@@ -118,3 +118,10 @@ func (s *UserServiceImpl) GetUserInfo(ctx context.Context, req *user.GetUserInfo
 
 	return resp, nil
 }
+
+// GetUserInfoByToken implements the UserServiceImpl interface.
+func (s *UserServiceImpl) GetUserInfoByToken(ctx context.Context, req *user.GetUserInfoByTokenReq) (resp *user.GetUserInfoByTokenResp, err error) {
+	resp = new(user.GetUserInfoByTokenResp)
+
+	return
+}

@@ -4,10 +4,11 @@ package game;
 option go_package = "/quic";
 
 message NewBullet {
-  int64 id = 1;
+  int32 id = 1;
   int32 x = 2;
   int32 y = 3;
   int32 direction = 5;
+  int64 tankId = 6;
 }
 
 message Bullet {

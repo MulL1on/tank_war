@@ -31,9 +31,18 @@ struct GetUserInfoResp{
     2:user.User user
 }
 
+struct GetUserInfoByTokenReq{
+    1: string token
+}
+struct GetUserInfoByTokenResp{
+    1:common.BaseResponse base_resp
+    2:user.User user
+}
+
 
 service UserService{
     RegisterResp Register(1:RegisterReq req)
     LoginResp Login(1:LoginReq req)
     GetUserInfoResp GetUserInfo(1:GetUserInfoReq req)
+    GetUserInfoByTokenResp GetUserInfoByToken(1:GetUserInfoByTokenReq req)
 }

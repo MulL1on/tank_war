@@ -3,20 +3,23 @@ package handler
 import (
 	"tank_war/server/cmd/game/game"
 	pb "tank_war/server/cmd/game/handler/pb/quic"
+	"tank_war/server/shared/consts"
 )
 
 type Handler struct {
 	//TODO: way to update status
-	game *game.Game
+	status int
+	game   *game.Game
 }
 
-func NewMessageManager() *Handler {
+func NewHandler() *Handler {
 	return &Handler{
-		game: game.NewGame(),
+		game:   game.NewGame(),
+		status: consts.GameOver,
 	}
 }
 
-func (h *Handler) NewTank(id int32) {
+func (h *Handler) NewTank(id int64) {
 	h.game.NewTank(id)
 }
 
@@ -37,42 +40,18 @@ func (h *Handler) GetRockList() *pb.Action {
 			GetRockList: rockList,
 		},
 	}
-
 	return action
-
 }
-
-//func (m *Handler) GetTankList(idList []int32) *pb.Action {
-//
-//	tankList := &pb.GetTankList{}
-//
-//	m.quic.GenerateTank(idList)
-//
-//	for _, v := range m.quic.TankBucket {
-//		tankBorn := &pb.Tank{
-//			Id: v.Id,
-//			X:  v.X,
-//			Y:  v.Y,
-//			Direction: v.Direction,
-//		}
-//		tankList.Tank = append(tankList.Tank, tankBorn)
-//	}
-//
-//	action := &pb.Action{
-//		Type: &pb.Action_GetTankList{
-//			GetTankList: tankList,
-//		},
-//	}
-//
-//	return action
-//
-//}
 
 func (h *Handler) TankMove(move *pb.Action_TankMove) {
 	h.game.TankMove(move.TankMove.Id, move.TankMove.Direction)
 }
 
 func (h *Handler) NewBullet(nb *pb.Action_NewBullet) {
+	_, ok := h.game.TankBucket[nb.NewBullet.TankId]
+	if !ok {
+		return
+	}
 	id := len(h.game.BulletBucket) + 1
 	b := &game.Bullet{
 		Id:        int32(id),
@@ -100,6 +79,15 @@ func (h *Handler) UpdateStatus() []*pb.Action {
 		}
 	}
 	actions := make([]*pb.Action, 0)
+	if len(h.game.TankBucket) <= 1 {
+		actions = append(actions, &pb.Action{
+			Type: &pb.Action_GameOver{
+				GameOver: &pb.GameOver{},
+			},
+		})
+		return actions
+	}
+
 	actions = append(actions, h.UpdateTankList(), h.UpdateBulletList(), h.UpdateExplosion())
 	return actions
 }

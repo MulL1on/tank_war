@@ -9,7 +9,7 @@ import (
 	"github.com/kitex-contrib/obs-opentelemetry/provider"
 	"github.com/kitex-contrib/obs-opentelemetry/tracing"
 	consul "github.com/kitex-contrib/registry-consul"
-	"tank_war/server/cmd/game/config"
+	"tank_war/server/cmd/api/config"
 	"tank_war/server/shared/kitex_gen/user/userservice"
 )
 
@@ -26,6 +26,8 @@ func initUser() {
 		provider.WithExportEndpoint(config.GlobalServerConfig.OtelInfo.EndPoint),
 		provider.WithInsecure(),
 	)
+
+	//hlog.Infof("init user client", config.GlobalServerConfig.UserSrvInfo.Name)
 
 	c, err := userservice.NewClient(
 		config.GlobalServerConfig.UserSrvInfo.Name,

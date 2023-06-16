@@ -7,17 +7,20 @@ type ConsulConfig struct {
 }
 
 type ServerConfig struct {
-	Name        string       `mapstructure:"name" json:"name"`
-	Host        string       `mapstructure:"host" json:"host"`
-	Port        int          `mapstructure:"port" json:"port"`
-	OtelInfo    OtelConfig   `mapstructure:"otel" json:"otel"`
-	UserSrvInfo RPCSrvConfig `mapstructure:"user_srv" json:"user_srv"`
+	Name     string     `mapstructure:"name" json:"name"`
+	Host     string     `mapstructure:"host" json:"host"`
+	Port     int        `mapstructure:"port" json:"port"`
+	OtelInfo OtelConfig `mapstructure:"otel" json:"otel"`
 }
 
 type OtelConfig struct {
 	EndPoint string `mapstructure:"endpoint" json:"endpoint"`
 }
 
-type RPCSrvConfig struct {
-	Name string `mapstructure:"name" json:"name"`
+type RedisConfig struct {
+	Host     string `mapstructure:"host" json:"host"`
+	Port     int    `mapstructure:"port" json:"port"`
+	Username string `mapstructure:"username" json:"username"`
+	Password string `mapstructure:"password" json:"password"`
+	DB       int    `mapstructure:"db" json:"db"`
 }

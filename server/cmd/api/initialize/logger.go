@@ -7,12 +7,13 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"tank_war/server/shared/consts"
 	"time"
 )
 
 func InitLogger() {
 	// Customizable output directory.
-	logFilePath := "tmp/hlog/logs"
+	logFilePath := consts.HlogFilePath
 	if err := os.MkdirAll(logFilePath, 0o777); err != nil {
 		panic(err)
 	}

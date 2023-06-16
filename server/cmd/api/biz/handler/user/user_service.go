@@ -2,6 +2,7 @@
 
 package user
 
+import "C"
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
@@ -74,5 +75,17 @@ func Login(ctx context.Context, c *app.RequestContext) {
 		c.JSON(http.StatusInternalServerError, resp)
 		return
 	}
+
+	err = tools.ParseBaseResp(res.BaseResp)
+	if err != nil {
+		if err == errno.RecordNotFound {
+			c.JSON(http.StatusOK, "no such user")
+		} else if err == errno.BadRequest {
+			c.JSON(http.StatusBadRequest, "password incorrect")
+		}
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
 	c.JSON(http.StatusOK, res)
 }

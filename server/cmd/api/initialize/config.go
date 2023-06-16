@@ -17,15 +17,12 @@ func InitConfig() {
 	v := viper.New()
 	v.SetConfigFile(consts.ApiConfigPath)
 	if err := v.ReadInConfig(); err != nil {
-		klog.Fatalf("get config file failed,err:%v", err)
+		hlog.Fatalf("get config file failed,err", err)
 	}
-	klog.Infof("config info: %v", config.GlobalConsulConfig)
 
 	if err := v.Unmarshal(&config.GlobalConsulConfig); err != nil {
-		klog.Fatalf("unmarshal err failed: %s", err.Error())
+		klog.Fatalf("unmarshal err failed", err.Error())
 	}
-
-	klog.Infof("config info: %v", config.GlobalConsulConfig)
 
 	cfg := api.DefaultConfig()
 	cfg.Address = net.JoinHostPort(
@@ -35,18 +32,19 @@ func InitConfig() {
 
 	client, err := api.NewClient(cfg)
 	if err != nil {
-		hlog.Fatalf("get consul client failed,err:%v", err)
+		hlog.Fatalf("get consul client failed,err", err)
 	}
 	content, _, err := client.KV().Get(config.GlobalConsulConfig.Key, nil)
 	if err != nil {
-		hlog.Fatalf("get consul config failed,err:%v", err)
+		hlog.Fatalf("get consul config failed,err", err)
 	}
 
 	err = sonic.Unmarshal(content.Value, &config.GlobalServerConfig)
 	if config.GlobalServerConfig.Host == "" {
 		config.GlobalServerConfig.Host, err = tools.GetLocalIPv4Address()
 		if err != nil {
-			hlog.Fatalf("get local ip failed,err:%v", err)
+			hlog.Fatalf("get local ip failed,err", err)
 		}
 	}
+	//hlog.Infof("config info", config.GlobalServerConfig.UserSrvInfo.Name)
 }

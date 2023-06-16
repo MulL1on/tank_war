@@ -14,7 +14,7 @@ import (
 
 func InitConfig() {
 	v := viper.New()
-	v.SetConfigFile(consts.UserConfigPath)
+	v.SetConfigFile(consts.GameConfigPath)
 	if err := v.ReadInConfig(); err != nil {
 		klog.Fatalf("read viper config failed: %s", err.Error())
 	}

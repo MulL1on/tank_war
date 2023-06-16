@@ -5,12 +5,14 @@ option go_package = "/quic";
 
 
 message JoinRoomReq {
-    string room_id = 1;
+    int64 room_id = 1;
     string token = 2;
+    int64 user_id = 3;
+    int32 max_player = 4;
+    string room_name = 5;
 }
 
 message JoinRoomResp {
-    int64 clientId = 1;
 }
 
 

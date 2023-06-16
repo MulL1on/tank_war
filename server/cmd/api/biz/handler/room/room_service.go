@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"github.com/bwmarrin/snowflake"
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/go-redis/redis/v8"
 	"github.com/hashicorp/consul/api"
 	"net"
@@ -16,6 +17,7 @@ import (
 	"tank_war/server/cmd/api/biz/model/room"
 	"tank_war/server/cmd/api/config"
 	"tank_war/server/shared/consts"
+	"tank_war/server/shared/kitex_gen/user"
 )
 
 // CreateRoom .
@@ -30,6 +32,30 @@ func CreateRoom(ctx context.Context, c *app.RequestContext) {
 	}
 	resp := new(room.CreateRoomResp)
 
+	//validate room capacity
+	if req.MaxPlayer < 2 || req.MaxPlayer > 4 {
+		c.String(http.StatusBadRequest, "room capacity must be 2-4")
+		return
+	}
+
+	uidStr := c.MustGet("uid").(string)
+	if uidStr == "" {
+		c.String(http.StatusBadRequest, "uid is empty")
+		return
+	}
+	uid, err := strconv.ParseInt(uidStr, 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, "uid is invalid")
+		return
+	}
+
+	//get username
+	kuser, err := config.GlobalUserClient.GetUserInfo(ctx, &user.GetUserInfoReq{UserId: uid})
+	if err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
 	//get room from redis
 	err = config.Rdb.HGet(ctx, consts.Room, req.Name).Err()
 	if err != nil {
@@ -41,10 +67,11 @@ func CreateRoom(ctx context.Context, c *app.RequestContext) {
 		c.String(http.StatusBadRequest, "room name already exists")
 		return
 	}
+
 	r := base.Room{
 		Name:          req.Name,
 		MaxPlayer:     req.MaxPlayer,
-		CurrentPlayer: 1,
+		CurrentPlayer: 0,
 	}
 
 	cfg := api.DefaultConfig()
@@ -58,20 +85,23 @@ func CreateRoom(ctx context.Context, c *app.RequestContext) {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-	services, _, err := client.Catalog().Service(consts.GameServer, "", nil)
-	if err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
+
 	sf, err := snowflake.NewNode(4)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	services, _, err := client.Health().Service(consts.GameServer, "", true, nil)
+	if err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	for _, service := range services {
-		if service.ServiceMeta["status"] == "free" {
-			r.Host = service.Address
-			r.Port = int32(service.ServicePort)
+		if service.Service.Meta["status"] == "free" {
+			r.Host = service.Service.Address
+			r.Port = int32(service.Service.Port)
 			r.RoomID = sf.Generate().Int64()
 
 			//保存房间信息到redis
@@ -88,8 +118,12 @@ func CreateRoom(ctx context.Context, c *app.RequestContext) {
 			}
 
 			resp.RoomID = r.RoomID
-			resp.Host = r.Host
+			resp.Address = r.Host
 			resp.Port = r.Port
+			resp.PlayerID = uid
+			resp.PlayerName = kuser.User.Username
+			resp.MaxPlayer = r.MaxPlayer
+			resp.RoomName = r.Name
 			c.JSON(http.StatusOK, resp)
 			return
 		}
@@ -107,7 +141,25 @@ func JoinRoom(ctx context.Context, c *app.RequestContext) {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	var r = &base.Room{}
+	uidStr := c.MustGet("uid").(string)
+	if uidStr == "" {
+		c.String(http.StatusBadRequest, "uid is empty")
+		return
+	}
+	uid, err := strconv.ParseInt(uidStr, 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, "uid is invalid")
+		return
+	}
+
+	//get username
+	kuser, err := config.GlobalUserClient.GetUserInfo(ctx, &user.GetUserInfoReq{UserId: uid})
+	if err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	r := &base.Room{}
 	//get room from redis
 	jsonData, err := config.Rdb.HGet(ctx, consts.Room, req.Name).Bytes()
 	if err != nil {
@@ -120,30 +172,18 @@ func JoinRoom(ctx context.Context, c *app.RequestContext) {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
+	hlog.Infof("room info: %v", r)
 
-	//判断房间是否已满
-	if r.CurrentPlayer >= r.MaxPlayer {
-		c.String(http.StatusInternalServerError, "room is full")
-		return
-	}
-
-	//更新房间信息
-	r.CurrentPlayer++
-
-	jsonData, err = json.Marshal(r)
-
-	err = config.Rdb.HSet(ctx, consts.Room, req.Name, r, 0).Err()
-	if err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
 	resp := new(room.JoinRoomResp)
 	resp.RoomID = r.RoomID
 	resp.Address = r.Host
 	resp.Port = r.Port
+	resp.PlayerID = uid
+	resp.MaxPlayer = r.MaxPlayer
+	resp.RoomName = r.Name
+	resp.PlayerName = kuser.User.Username
 
 	c.JSON(http.StatusOK, resp)
-
 }
 
 // GetRoomList .

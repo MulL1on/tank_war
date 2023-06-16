@@ -7,7 +7,7 @@ type Bullet struct {
 	X         int32
 	Y         int32
 	Direction int32
-	TankId    int32
+	TankId    int64
 }
 
 func (g *Game) NewBullet(b *Bullet) {
