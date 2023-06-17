@@ -5,6 +5,10 @@
 - w、a、s、d 控制移动
 - 空格键发射炮弹 装填3s
 
+已经部署
+需要修改 client/consts/consts.go文件中的地址为43.139.153.160端口为8888
+启动客户端，即可快乐游戏
+
 ### 第三方库
 
 - kitex  https://github.com/cloudwego/kitex
