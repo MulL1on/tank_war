@@ -31,7 +31,7 @@
 
 ### 服务架构
 
-![服务器架构](\\wsl$\Ubuntu-20.04\home\go\src\tank_war\img\服务器架构.png)
+![服务器架构](https://github.com/MulL1on/tank_war/blob/master/img/%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%9E%B6%E6%9E%84.png)
 
 - 客户端-大厅服务器(agent server)通过http通信
 - 客户端-游戏服务器(game server)通过quic通信
