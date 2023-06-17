@@ -260,13 +260,13 @@ kv对详细：
    go run main.go
    ```
 
-![image-20230617195409959](\\wsl$\Ubuntu-20.04\home\go\src\tank_war\img\image-20230617195409959.png)
+![image-20230617195409959](https://github.com/MulL1on/tank_war/blob/master/img/image-20230617195409959.png)
 
 按下对应数据使用功能
 
 ### 游戏界面
 
-![image-20230617195831705](\\wsl$\Ubuntu-20.04\home\go\src\tank_war\img\image-20230617195831705.png)
+![image-20230617195831705](https://github.com/MulL1on/tank_war/blob/master/img/image-20230617195831705.png)
 
 - @为岩石
 - 箭头为坦克
