@@ -9,6 +9,8 @@ type User struct {
 	ID       int64  `gorm:"column:id;primary_key" json:"id"`
 	Username string `gorm:"column:username" json:"username"`
 	Password string `gorm:"column:password" json:"password"`
+	Kill     int    `gorm:"column:kill" json:"kill"`
+	Death    int    `gorm:"column:death" json:"death"`
 }
 
 type UserManager struct {

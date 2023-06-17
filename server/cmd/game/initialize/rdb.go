@@ -3,9 +3,9 @@ package initialize
 import (
 	"context"
 	"fmt"
-	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/go-redis/redis/v8"
-	"tank_war/server/cmd/api/config"
+	"tank_war/server/cmd/game/config"
 	"time"
 )
 
@@ -21,8 +21,7 @@ func InitRdb() {
 	defer cancel()
 	_, err := rdb.Ping(ctx).Result()
 	if err != nil {
-		hlog.Fatalf("connect to redis failed,err:%v", err)
+		klog.Fatalf("connect to redis failed,err:%v", err)
 	}
 	config.Rdb = rdb
-	hlog.Info("initialize redis successfully.")
 }

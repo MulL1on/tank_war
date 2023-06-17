@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math"
 	"math/rand"
 )
 
@@ -43,11 +44,20 @@ func (g *Game) IsTankHitTank(x int32, y int32) bool {
 func (g *Game) IsBulletHitTank(b *Bullet) bool {
 	for _, v := range g.TankBucket {
 		if v.X == b.X && v.Y == b.Y {
-			if v.Id == b.TankId {
+			if v.Id == b.TankId || v.IsDead {
 				return false
 			}
 			g.TankBucket[b.TankId].Kill++
-			delete(g.TankBucket, v.Id)
+			g.TankBucket[v.Id].IsDead = true
+			return true
+		}
+	}
+	return false
+}
+
+func (g *Game) IsTankAroundTank(x int32, y int32) bool {
+	for _, v := range g.TankBucket {
+		if math.Abs(float64(v.X-x)) < 2 || math.Abs(float64(v.Y-y)) < 2 {
 			return true
 		}
 	}

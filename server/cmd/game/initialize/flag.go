@@ -14,7 +14,7 @@ func InitFlag() {
 	//parsing flag, and if Port is 0, will automatically get an empty Port
 	flag.Parse()
 	if *Port == 0 {
-		*Port, _ = tools.GetFreePort()
+		*Port, _ = tools.GetFreePortInRange(config.GlobalServerConfig.Host)
 	}
 	klog.Info("port:", *Port)
 	config.GlobalServerConfig.Port = *Port

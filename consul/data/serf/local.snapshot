@@ -7,3 +7,18 @@ event-clock: 3
 alive: 698cc092202f 172.28.0.8:8301
 alive: 698cc092202f 172.28.0.7:8301
 event-clock: 4
+alive: 91924a348538 172.27.0.7:8301
+alive: 6dbc39fec24f 172.28.0.7:8301
+event-clock: 5
+alive: 6dbc39fec24f 172.28.0.7:8301
+event-clock: 6
+alive: 90a91b11f251 172.29.0.8:8301
+event-clock: 7
+alive: 90a91b11f251 172.29.0.4:8301
+event-clock: 8
+alive: 90a91b11f251 172.29.0.7:8301
+event-clock: 9
+alive: 90a91b11f251 172.29.0.5:8301
+event-clock: 10
+alive: 25c6aefa9f44 172.27.0.5:8301
+event-clock: 11

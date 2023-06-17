@@ -6,21 +6,33 @@ type Tank struct {
 	Id        int64
 	Direction rune
 	IsLoading bool
+	Color     uint64
+	IsDead    bool
 
 	Name  string
 	Level int32
 	Kill  int32
 }
 
-func (g *Game) NewTank(id int64) {
-	t := &Tank{
-		X:         1,
-		Y:         1,
-		Direction: '↑',
-		Id:        id,
-		Kill:      0,
+func (g *Game) NewTank(name string, id int64, color uint64) {
+	//random tank position
+	for {
+		x := NRand(0, GlobalConfig.ScreenWidth)
+		y := NRand(0, GlobalConfig.ScreenHeight)
+		if !g.IsHitBorder(x, y) && !g.IsHitRock(x, y) && !g.IsTankAroundTank(x, y) {
+			g.TankBucket[id] = &Tank{
+				X:         x,
+				Y:         y,
+				Direction: '↑',
+				Id:        id,
+				Kill:      0,
+				Color:     color,
+				Name:      name,
+				IsDead:    false,
+			}
+			break
+		}
 	}
-	g.TankBucket[id] = t
 }
 
 func (g *Game) TankMove(id int64, direction int32) {

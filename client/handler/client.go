@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/gdamore/tcell/v2"
 	"github.com/quic-go/quic-go"
 	"google.golang.org/protobuf/proto"
 	"log"
@@ -13,57 +14,70 @@ import (
 type Client struct {
 	id      int64
 	stream  quic.Stream
-	exit    chan struct{}
+	Exit    chan struct{}
 	handler *Handler
 	send    chan *pb.Action
 }
 
-func NewClient(stream quic.Stream, id int64) {
+func NewClient(stream quic.Stream, id int64, screen tcell.Screen) *Client {
 	// 初始化游戏
 	game.NewGame(id)
 
 	var c = &Client{
 		id:     id,
 		stream: stream,
-		exit:   make(chan struct{}),
+		Exit:   make(chan struct{}),
 		send:   make(chan *pb.Action),
 	}
-	c.handler = NewHandler(c)
-	go c.handler.Listen()
+	c.handler = NewHandler(c, screen)
 	go c.WriteMessage()
 	go c.ReadMessage()
+	go c.handler.Listen()
+	return c
 }
 
 func (c *Client) ReadMessage() {
-	defer c.stream.Close()
+	defer func() {
+		c.stream.Close()
+		c.Exit <- struct{}{}
+	}()
 	for {
-		data := make([]byte, 1024)
-		_, err := c.stream.Read(data)
-		if err != nil {
-			log.Println(err)
+		select {
+		case <-c.Exit:
 			return
-		}
-		buffer := bytes.NewBuffer(data)
-		// read data length
-		var length int32
-		if err = binary.Read(buffer, binary.BigEndian, &length); err != nil {
-			log.Println(err)
-		}
-		// read data content
-		data = make([]byte, length)
-		if err = binary.Read(buffer, binary.BigEndian, &data); err != nil {
-			log.Println(err)
-		}
+		default:
+			data := make([]byte, 1024)
+			_, err := c.stream.Read(data)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			buffer := bytes.NewBuffer(data)
+			// read data length
+			var length int32
+			if err = binary.Read(buffer, binary.BigEndian, &length); err != nil {
+				log.Println(err)
+			}
+			// read data content
+			data = make([]byte, length)
+			if err = binary.Read(buffer, binary.BigEndian, &data); err != nil {
+				log.Println(err)
+			}
 
-		c.Route(data)
+			c.Route(data)
+			//log.Println("read message length: ", length, " data: ", data)
+		}
 	}
 }
 
 func (c *Client) WriteMessage() {
-	defer c.stream.Close()
+	defer func() {
+		c.stream.Close()
+		c.Exit <- struct{}{}
+	}()
 	for {
 		select {
-		case <-c.exit:
+		case <-c.Exit:
 			return
 		case action := <-c.send:
 			data, err := proto.Marshal(action)
@@ -105,5 +119,7 @@ func (c *Client) Route(data []byte) {
 		c.handler.GetTankList(act)
 	case *pb.Action_GetExplosionList:
 		c.handler.GetExplosionList(act)
+	case *pb.Action_GameOver:
+		c.Exit <- struct{}{}
 	}
 }

@@ -25,6 +25,7 @@ require (
 	github.com/kitex-contrib/registry-consul v0.0.0-20230406075225-7d341f036654
 	github.com/quic-go/quic-go v0.35.1
 	github.com/spf13/viper v1.15.0
+	github.com/streadway/amqp v1.0.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gorm.io/driver/mysql v1.5.0

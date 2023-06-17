@@ -2,9 +2,9 @@ syntax = "proto3";
 package game;
 option go_package = "/quic";
 
-import "proto/quic/tank.proto";
-import "proto/quic/bullet.proto";
-import "proto/quic/world.proto";
+import "idl/quic/tank.proto";
+import "idl/quic/bullet.proto";
+import "idl/quic/world.proto";
 
 
 
@@ -18,11 +18,16 @@ message Action {
     GetRockList getRockList = 8;
     NewBullet newBullet = 9;
     GetExplosionList getExplosionList = 10;
+    GameOver gameOver = 11;
   }
 }
 
 message ActionList {
   repeated Action actions = 1;
+}
+
+message GameOver {
+  bool gameOver = 1;
 }
 
 

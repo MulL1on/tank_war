@@ -29,6 +29,24 @@ func main() {
 	initialize.InitRdb()
 	initialize.InitFlag()
 	initialize.InitRegistry()
+	conn := initialize.InitMq()
+	ch, err := conn.Channel()
+	if err != nil {
+		klog.Fatal(err)
+	}
+	_, err = ch.QueueDeclare(
+		"user_data",
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		klog.Fatal(err)
+	}
+	defer ch.Close()
+	config.MqChan = ch
 
 	p := provider.NewOpenTelemetryProvider(
 		provider.WithServiceName(config.GlobalServerConfig.Name),
@@ -37,7 +55,7 @@ func main() {
 	)
 	defer p.Shutdown(context.Background())
 
-	listener, err := quic.ListenAddr(net.JoinHostPort("127.0.0.1", strconv.Itoa(8888)), generateTLSConfig(), nil)
+	listener, err := quic.ListenAddr(net.JoinHostPort(config.GlobalServerConfig.Host, strconv.Itoa(config.GlobalServerConfig.Port)), generateTLSConfig(), nil)
 	if err != nil {
 		klog.Fatalf("quic.ListenAddr failed: %v", err)
 	}
@@ -86,7 +104,7 @@ func main() {
 			klog.Infof("unmarshal err: %v")
 			continue
 		}
-		handler.NewClient(stream, msg.UserId, msg)
+		handler.NewClient(stream, msg)
 	}
 }
 

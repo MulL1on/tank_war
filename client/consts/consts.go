@@ -1,8 +1,8 @@
 package consts
 
 const (
-	AgentServerAddress = "localhost"
-	AgentServerPort    = 8080
+	AgentServerAddress = "43.139.153.160"
+	AgentServerPort    = 8888
 
 	Token = ""
 )

@@ -9,9 +9,13 @@ struct CreateRoomReq {
 }
 
 struct CreateRoomResp {
-    1: required string host
+    1: required string address
     2: required i32 port
     3: required i64 room_id
+    4: required i64 player_id
+    5: required i32 max_player
+    6: required string room_name
+    7: required string player_name
 }
 
 struct JoinRoomReq {

@@ -12,20 +12,26 @@ import (
 )
 
 type Client struct {
+	name   string
 	room   *Room
 	id     int64
 	stream quic.Stream
 	send   chan *pb.Action
 }
 
-func NewClient(stream quic.Stream, id int64, req *pb.JoinRoomReq) {
+func NewClient(stream quic.Stream, req *pb.JoinRoomReq) {
 
 	room := getRoom(req)
+	if _, ok := room.clients[req.PlayerId]; ok {
+		stream.Close()
+		return
+	}
 	c := &Client{
-		id:     id,
+		id:     req.PlayerId,
 		room:   room,
 		stream: stream,
 		send:   make(chan *pb.Action),
+		name:   req.PlayerName,
 	}
 
 	room.registry <- c
@@ -47,7 +53,7 @@ func (c *Client) readPump() {
 			c.stream.Close()
 			break
 		}
-		if c.room.handler.status == consts.GameOver {
+		if c.room.handler.status != consts.GameStart {
 			continue
 		}
 
@@ -104,6 +110,7 @@ func (c *Client) writePump() {
 			if n != len(buffer.Bytes()) {
 				klog.Infof("send length error", err)
 			}
+			//klog.Infof("send length:", len(data), "total length:", len(buffer.Bytes()))
 			time.Sleep(time.Millisecond * 1)
 			//TODO: 为什么加了这个log就不会出现数据丢失的情况
 			//log.Println("send length:", len(data), "total length:", len(buffer.Bytes()))

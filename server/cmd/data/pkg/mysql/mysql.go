@@ -1,4 +1,4 @@
-package pkg
+package mysql
 
 import (
 	"gorm.io/gorm"
@@ -24,7 +24,17 @@ func NewUserManager(db *gorm.DB) *UserManager {
 }
 
 func (m *UserManager) UpdateUser(user *User) {
-	err := m.db.Model(&user).Updates(user).Error
+	log.Println("update user", user)
+	//get user from db
+	var u = &User{}
+	m.db.Model(&user).Where("username = ?", user.Username).First(&u)
+
+	if user.Death == 1 {
+		u.Death += 1
+	}
+	u.Kill += user.Kill
+
+	err := m.db.Model(&u).Updates(u).Error
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
 			log.Println(err)

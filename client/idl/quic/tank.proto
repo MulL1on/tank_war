@@ -5,15 +5,18 @@ option go_package = "/quic";
 
 
 message TankRemove {
-  int32 id = 1;
+  int64 id = 1;
 }
 
 message Tank {
-  int32 id = 1;
+  int64 id = 1;
   int32 x = 2;
   int32 y = 3;
   int32 direction = 4;
   int32 kill = 5;
+  uint64 color = 6;
+  string name = 7;
+  bool isDead = 8;
 }
 
 message GetTankList {
@@ -22,7 +25,7 @@ message GetTankList {
 
 
 message TankMove {
-  int32 id = 1;
+  int64 id = 1;
   int32 direction = 2;
 }
 

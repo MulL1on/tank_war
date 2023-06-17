@@ -1,12 +1,10 @@
 package game
 
 import (
-	"log"
 	"time"
 )
 
 func NewGame() *Game {
-	log.Println("create quic")
 
 	g := &Game{
 		RockBucket:      make([]*Rock, 0),
@@ -20,7 +18,7 @@ func NewGame() *Game {
 			if len(g.ExplosionBucket) > 0 {
 				g.ExplosionBucket = g.ExplosionBucket[1:]
 			}
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond) // 设置爆炸效果的持续时间
 		}
 	}()
 	return g

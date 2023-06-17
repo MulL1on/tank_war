@@ -11,4 +11,10 @@ api:
 .PHONY:game
 game:
 	@echo "Starting game..."
-	@go run ./sever/cmd/game &
+	@go run ./server/cmd/game &
+
+
+.PHONY:data
+data:
+	@echo "Starting data..."
+	@go run ./server/cmd/data &

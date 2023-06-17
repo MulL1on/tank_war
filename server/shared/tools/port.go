@@ -1,7 +1,9 @@
 package tools
 
 import (
+	"errors"
 	"net"
+	"strconv"
 	"tank_war/server/shared/consts"
 )
 
@@ -16,4 +18,28 @@ func GetFreePort() (int, error) {
 	}
 	defer l.Close()
 	return l.Addr().(*net.TCPAddr).Port, nil
+}
+
+func GetFreePortInRange(ip string) (int, error) {
+	startPort := 8000
+	endPort := 9000
+	for i := startPort; i < endPort; i++ {
+		if i == 8080 || i == 8888 {
+			continue
+		}
+		if isPortOpen(ip, i) {
+			return i, nil
+		}
+	}
+	return 0, errors.New("no free port")
+}
+
+func isPortOpen(ip string, port int) bool {
+	address := ip + ":" + strconv.Itoa(port)
+	conn, err := net.Dial("udp", address)
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+	return true
 }

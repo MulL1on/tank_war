@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gdamore/tcell/v2"
+	"log"
 	"tank_war/client/game"
 	pb "tank_war/client/handler/pb/quic"
 )
@@ -11,9 +12,10 @@ type Handler struct {
 	screen tcell.Screen
 }
 
-func NewHandler(client *Client) *Handler {
+func NewHandler(client *Client, screen tcell.Screen) *Handler {
 	return &Handler{
 		client: client,
+		screen: screen,
 	}
 }
 
@@ -30,7 +32,7 @@ func (m *Handler) GetRockList(rockList *pb.Action_GetRockList) {
 }
 
 func (m *Handler) GetTankList(tankList *pb.Action_GetTankList) {
-	game.TankBucket = make(map[int32]*game.Tank)
+	game.TankBucket = make(map[int64]*game.Tank)
 	for _, v := range tankList.GetTankList.Tank {
 
 		tank := &game.Tank{
@@ -38,11 +40,14 @@ func (m *Handler) GetTankList(tankList *pb.Action_GetTankList) {
 			Y:         v.Y,
 			Direction: v.Direction,
 			Id:        v.Id,
+			Color:     v.Color,
+			Name:      v.Name,
+			IsDead:    v.IsDead,
 
 			Kill: v.Kill,
 		}
 		game.TankBucket[v.Id] = tank
-		//log.Println("get tank", v)
+		log.Println("get tank", v)
 	}
 }
 

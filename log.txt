@@ -1,0 +1,10 @@
+2023/06/17 18:13:19 main.go:36: connected to rabbitmq server successfully
+2023/06/17 18:15:42 mysql.go:27: update user &{1670011887355432960 dingzhen  0 1}
+2023/06/17 18:15:42 mysql.go:27: update user &{1670011851456385024 liangweijian  1 0}
+2023/06/17 18:17:04 mysql.go:27: update user &{1670011887355432960 dingzhen  2 0}
+2023/06/17 18:17:04 mysql.go:27: update user &{1670011851456385024 liangweijian  0 1}
+2023/06/17 18:17:04 mysql.go:27: update user &{1670011912315736064 sunxiaochuan  0 1}
+2023/06/17 18:28:36 mysql.go:27: update user &{1670011851456385024 liangweijian  0 1}
+2023/06/17 18:28:36 mysql.go:27: update user &{1670011887355432960 dingzhen  1 0}
+2023/06/17 18:42:20 mysql.go:27: update user &{1670011851456385024 liangweijian  0 1}
+2023/06/17 18:42:20 mysql.go:27: update user &{1670011887355432960 dingzhen  1 0}

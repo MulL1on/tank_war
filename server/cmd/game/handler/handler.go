@@ -4,6 +4,7 @@ import (
 	"tank_war/server/cmd/game/game"
 	pb "tank_war/server/cmd/game/handler/pb/quic"
 	"tank_war/server/shared/consts"
+	"time"
 )
 
 type Handler struct {
@@ -15,12 +16,12 @@ type Handler struct {
 func NewHandler() *Handler {
 	return &Handler{
 		game:   game.NewGame(),
-		status: consts.GameOver,
+		status: consts.GameNone,
 	}
 }
 
-func (h *Handler) NewTank(id int64) {
-	h.game.NewTank(id)
+func (h *Handler) NewTank(name string, id int64, color uint64) {
+	h.game.NewTank(name, id, color)
 }
 
 func (h *Handler) GetRockList() *pb.Action {
@@ -48,8 +49,11 @@ func (h *Handler) TankMove(move *pb.Action_TankMove) {
 }
 
 func (h *Handler) NewBullet(nb *pb.Action_NewBullet) {
-	_, ok := h.game.TankBucket[nb.NewBullet.TankId]
+	t, ok := h.game.TankBucket[nb.NewBullet.TankId]
 	if !ok {
+		return
+	}
+	if t.IsDead || t.IsLoading {
 		return
 	}
 	id := len(h.game.BulletBucket) + 1
@@ -60,16 +64,39 @@ func (h *Handler) NewBullet(nb *pb.Action_NewBullet) {
 		Direction: nb.NewBullet.Direction,
 		TankId:    nb.NewBullet.TankId,
 	}
+	t.IsLoading = true
+	go func() {
+		time.Sleep(3 * time.Second)
+		t.IsLoading = false
+	}()
 	//log.Println("new bullet", b)
 	h.game.NewBullet(b)
 }
 
 func (h *Handler) UpdateStatus() []*pb.Action {
+	actions := make([]*pb.Action, 0)
+
 	for _, b := range h.game.BulletBucket {
 		b.Move()
 		if h.game.IsBulletHitTank(b) {
 			h.game.RemoveBullet(b)
 			h.game.NewExplosion(b.X, b.Y)
+			count := 0
+			for _, t := range h.game.TankBucket {
+				if !t.IsDead {
+					count++
+				}
+			}
+			if count == 1 {
+				h.status = consts.GameOver
+				actions = append(actions, &pb.Action{
+					Type: &pb.Action_GameOver{
+						GameOver: &pb.GameOver{},
+					},
+				})
+				return actions
+			}
+
 		} else if h.game.IsHitRock(b.X, b.Y) {
 			h.game.RemoveBullet(b)
 			h.game.NewExplosion(b.X, b.Y)
@@ -77,15 +104,6 @@ func (h *Handler) UpdateStatus() []*pb.Action {
 			h.game.RemoveBullet(b)
 			h.game.NewExplosion(b.X, b.Y)
 		}
-	}
-	actions := make([]*pb.Action, 0)
-	if len(h.game.TankBucket) <= 1 {
-		actions = append(actions, &pb.Action{
-			Type: &pb.Action_GameOver{
-				GameOver: &pb.GameOver{},
-			},
-		})
-		return actions
 	}
 
 	actions = append(actions, h.UpdateTankList(), h.UpdateBulletList(), h.UpdateExplosion())
@@ -104,6 +122,9 @@ func (h *Handler) UpdateTankList() *pb.Action {
 			Y:         t.Y,
 			Direction: t.Direction,
 			Kill:      t.Kill,
+			Color:     t.Color,
+			Name:      t.Name,
+			IsDead:    t.IsDead,
 		}
 		tl.GetTankList.Tank = append(tl.GetTankList.Tank, tank)
 	}
