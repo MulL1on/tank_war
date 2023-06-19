@@ -6,7 +6,7 @@
 - 空格键发射炮弹 装填3s
 
 已经部署
-需要修改 client/consts/consts.go文件中的地址为43.139.153.160端口为8888
+需要修改 client/consts/consts.go
 启动客户端，即可快乐游戏
 
 ### 第三方库
@@ -30,7 +30,7 @@
 | 数据库             | redis、msyql  |
 | 消息队列           | RabbitMQ      |
 | 服务治理           | OpenTelemetry |
-| 服务发现与配置中心 | Paseto        |
+| 服务发现与配置中心 | Consul        |
 | 加密               | Snowflake     |
 
 ### 服务架构
