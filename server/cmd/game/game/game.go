@@ -27,6 +27,7 @@ func NewGame() *Game {
 type Game struct {
 	ExplosionBucket []*Explosion
 	RockBucket      []*Rock
-	BulletBucket    map[int32]*Bullet
-	TankBucket      map[int64]*Tank
+	// TODO sync.map 或者 cmap
+	BulletBucket map[int32]*Bullet
+	TankBucket   map[int64]*Tank
 }

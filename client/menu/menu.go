@@ -375,16 +375,21 @@ func startTheGame(r *room.JoinRoomResp) {
 			screen.Fini()
 			return
 		default:
-			screen.Clear()
-			game.DrawBorder(screen)
-			game.DrawRocks(screen)
-			game.DrawPlayerList(screen)
-			game.DrawTank(screen)
-			game.DrawBullet(screen)
-			game.DrawExplosion(screen)
-			game.DrawBoard(screen)
-			screen.Show()
-			time.Sleep(17 * time.Millisecond)
+			if game.Mu.TryRLock() {
+				screen.Clear()
+				// 加读锁保护
+				game.DrawBorder(screen)
+				game.DrawRocks(screen)
+				game.DrawPlayerList(screen)
+				game.DrawTank(screen)
+				game.DrawBullet(screen)
+				game.DrawExplosion(screen)
+				game.DrawBoard(screen)
+				game.Mu.RUnlock()
+				screen.Show()
+			}
+			// 30 FPS
+			time.Sleep(33 * time.Millisecond)
 		}
 	}
 }

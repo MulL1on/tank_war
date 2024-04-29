@@ -3,23 +3,28 @@ package handler
 import (
 	"github.com/gdamore/tcell/v2"
 	"log"
+	"sync"
 	"tank_war/client/game"
 	pb "tank_war/client/handler/pb/quic"
 )
 
 type Handler struct {
+	mu     sync.RWMutex
 	client *Client
 	screen tcell.Screen
 }
 
 func NewHandler(client *Client, screen tcell.Screen) *Handler {
 	return &Handler{
+		mu:     sync.RWMutex{},
 		client: client,
 		screen: screen,
 	}
 }
 
 func (m *Handler) GetRockList(rockList *pb.Action_GetRockList) {
+	game.Mu.Lock()
+	defer game.Mu.Unlock()
 	for _, v := range rockList.GetRockList.Rock {
 		rock := &game.Rock{
 			X:      v.X,
@@ -32,6 +37,8 @@ func (m *Handler) GetRockList(rockList *pb.Action_GetRockList) {
 }
 
 func (m *Handler) GetTankList(tankList *pb.Action_GetTankList) {
+	game.Mu.Lock()
+	defer game.Mu.Unlock()
 	game.TankBucket = make(map[int64]*game.Tank)
 	for _, v := range tankList.GetTankList.Tank {
 
@@ -52,6 +59,8 @@ func (m *Handler) GetTankList(tankList *pb.Action_GetTankList) {
 }
 
 func (m *Handler) GetBulletList(bulletList *pb.Action_GetBulletList) {
+	game.Mu.Lock()
+	defer game.Mu.Unlock()
 	game.BulletBucket = make(map[int32]*game.Bullet)
 	for _, v := range bulletList.GetBulletList.Bullet {
 
@@ -64,6 +73,8 @@ func (m *Handler) GetBulletList(bulletList *pb.Action_GetBulletList) {
 }
 
 func (m *Handler) GetExplosionList(explosionList *pb.Action_GetExplosionList) {
+	game.Mu.Lock()
+	defer game.Mu.Unlock()
 	game.ExplosionBucket = make([]*game.Explosion, 0)
 	for _, v := range explosionList.GetExplosionList.Explosion {
 
@@ -134,23 +145,23 @@ func (m *Handler) TankMoveRight() {
 
 func (m *Handler) Fire() {
 	t := game.TankBucket[m.client.id]
-	var diretion int32
+	var direction int32
 	switch t.Direction {
 	case '↑':
-		diretion = 0
+		direction = 0
 	case '↓':
-		diretion = 1
+		direction = 1
 	case '←':
-		diretion = 2
+		direction = 2
 	case '→':
-		diretion = 3
+		direction = 3
 	}
 	nb := &pb.Action_NewBullet{
 		NewBullet: &pb.NewBullet{
 			X:         t.X,
 			Y:         t.Y,
 			TankId:    t.Id,
-			Direction: diretion,
+			Direction: direction,
 		},
 	}
 	action := &pb.Action{

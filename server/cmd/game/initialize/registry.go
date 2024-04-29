@@ -16,7 +16,7 @@ func InitRegistry() {
 	cfg.Address = net.JoinHostPort(
 		config.GlobalConsulConfig.Host,
 		strconv.Itoa(config.GlobalConsulConfig.Port))
-	//helth check
+	//health check
 	check := &api.AgentServiceCheck{
 		TTL:                            consts.ConsulCheckTTL,
 		DeregisterCriticalServiceAfter: "1s",

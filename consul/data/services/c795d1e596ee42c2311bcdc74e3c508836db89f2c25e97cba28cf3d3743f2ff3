@@ -1,1 +1,0 @@
-{"Token":"","Service":{"ID":"game_srv:localhost:8000","Service":"game_srv","Tags":null,"Address":"localhost","Meta":{"status":"busy"},"Port":8000,"Weights":{"Passing":1,"Warning":1},"EnableTagOverride":false,"Proxy":{"Mode":"","MeshGateway":{},"Expose":{}},"Connect":{},"PeerName":"","CreateIndex":0,"ModifyIndex":0},"Source":"remote"}

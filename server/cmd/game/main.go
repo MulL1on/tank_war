@@ -67,7 +67,7 @@ func main() {
 		if err != nil {
 			klog.Fatalf("listener.Accept failed: %v")
 		}
-		klog.Infof("client connected,ip:", conn.RemoteAddr().String())
+		klog.Infof("client connected,ip: %s", conn.RemoteAddr().String())
 		stream, err := conn.OpenStream()
 		if err != nil {
 			klog.Infof("conn.OpenStream failed: %v", err)
@@ -81,20 +81,20 @@ func main() {
 		//获取加入房间请求
 		_, err = stream.Read(data)
 		if err != nil {
-			klog.Infof("read err: %v")
+			klog.Infof("read err: %v", err)
 			continue
 		}
 		buffer := bytes.NewBuffer(data)
 
 		var length int32
 		if err = binary.Read(buffer, binary.BigEndian, &length); err != nil {
-			klog.Infof("read data length error", err)
+			klog.Infof("read data length error: %v", err)
 		}
 
 		// read data content
 		data = make([]byte, length)
 		if err = binary.Read(buffer, binary.BigEndian, &data); err != nil {
-			klog.Infof("read data content error", err)
+			klog.Infof("read data content error: %v", err)
 		}
 
 		//解析请求

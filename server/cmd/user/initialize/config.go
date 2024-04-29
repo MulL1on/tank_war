@@ -21,7 +21,7 @@ func InitConfig() {
 	if err := v.Unmarshal(&config.GlobalConsulConfig); err != nil {
 		klog.Fatalf("unmarshal err failed: %s", err.Error())
 	}
-	klog.Infof("Config Info: %v", config.GlobalConsulConfig)
+	//klog.Infof("Config Info: %v", config.GlobalConsulConfig)
 
 	cfg := api.DefaultConfig()
 	cfg.Address = net.JoinHostPort(
@@ -39,7 +39,6 @@ func InitConfig() {
 	if err != nil {
 		klog.Fatalf("sonic unmarshal config failed: %s", err.Error())
 	}
-	klog.Infof("mysql info: %v", config.GlobalServerConfig.MysqlInfo)
 
 	if config.GlobalServerConfig.Host == "" {
 		config.GlobalServerConfig.Host, err = tools.GetLocalIPv4Address()

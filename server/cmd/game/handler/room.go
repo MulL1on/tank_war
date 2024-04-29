@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-redis/redis/v8"
@@ -26,7 +27,7 @@ type Room struct {
 	id         int64
 	name       string
 	clients    map[int64]*Client
-	unregistry chan *Client
+	unregister chan *Client
 	registry   chan *Client
 	broadcast  chan *pb.Action
 	handler    *Handler
@@ -34,16 +35,19 @@ type Room struct {
 	gameOver   chan struct{}
 }
 
+// TODO rooms 加锁
 var rooms = make(map[int64]*Room)
 
 func getRoom(req *pb.JoinRoomReq) *Room {
+	roomMutex.Lock()
+	defer roomMutex.Unlock()
 	if v, ok := rooms[req.RoomId]; ok {
 		return v
 	}
 	r := &Room{
 		id:         req.RoomId,
 		clients:    make(map[int64]*Client),
-		unregistry: make(chan *Client),
+		unregister: make(chan *Client),
 		registry:   make(chan *Client),
 		broadcast:  make(chan *pb.Action),
 		handler:    NewHandler(),
@@ -52,7 +56,7 @@ func getRoom(req *pb.JoinRoomReq) *Room {
 	}
 	rooms[req.RoomId] = r
 	go r.Run()
-	klog.Infof("create room:", req.RoomId)
+	klog.Infof("create room: %d", req.RoomId)
 	if len(rooms) > 0 {
 		updateServiceMeta("busy")
 	}
@@ -73,8 +77,8 @@ func (r *Room) Run() {
 		select {
 		case c := <-r.registry:
 			r.Registry(c)
-		case c := <-r.unregistry:
-			r.Unregistry(c)
+		case c := <-r.unregister:
+			r.Unregister(c)
 		case action := <-r.broadcast:
 			r.Broadcast(action)
 		}
@@ -105,7 +109,8 @@ func (r *Room) Broadcast(action *pb.Action) {
 	}
 }
 
-func (r *Room) Unregistry(c *Client) {
+func (r *Room) Unregister(c *Client) {
+	// TODO 加锁
 	if _, ok := r.clients[c.id]; ok {
 		delete(r.clients, c.id)
 		close(c.send)
@@ -116,7 +121,7 @@ func (r *Room) Unregistry(c *Client) {
 			return
 		}
 		delete(rooms, c.room.id)
-		klog.Infof("delete room:", c.room.id)
+		klog.Infof("delete room: %d", c.room.id)
 		if len(rooms) < 1 {
 			updateServiceMeta("free")
 		}
@@ -129,7 +134,7 @@ func (r *Room) Unregistry(c *Client) {
 }
 
 func (r *Room) Registry(c *Client) {
-
+	// TODO 加锁
 	r.clients[c.id] = c
 	//frame
 	color := uint64(tcell.ColorGreen + tcell.Color(len(r.clients)))
@@ -147,7 +152,7 @@ func (r *Room) Registry(c *Client) {
 	//get room from redis
 	jsonData, err := config.Rdb.HGet(context.Background(), consts.Room, r.name).Bytes()
 	if err != nil {
-		if err == redis.Nil {
+		if errors.Is(err, redis.Nil) {
 			return
 		}
 		klog.Infof("get room from redis error :%v", err)

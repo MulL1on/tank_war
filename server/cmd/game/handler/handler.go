@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"sync"
 	"tank_war/server/cmd/game/game"
 	pb "tank_war/server/cmd/game/handler/pb/quic"
 	"tank_war/server/shared/consts"
@@ -9,22 +10,27 @@ import (
 
 type Handler struct {
 	//TODO: way to update status
+	mu     sync.RWMutex
 	status int
 	game   *game.Game
 }
 
 func NewHandler() *Handler {
 	return &Handler{
+		mu:     sync.RWMutex{},
 		game:   game.NewGame(),
 		status: consts.GameNone,
 	}
 }
 
 func (h *Handler) NewTank(name string, id int64, color uint64) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	h.game.NewTank(name, id, color)
 }
 
 func (h *Handler) GetRockList() *pb.Action {
+	// 不用加锁，这是只读的
 	rockList := &pb.GetRockList{}
 
 	for _, v := range h.game.RockBucket {
@@ -45,10 +51,14 @@ func (h *Handler) GetRockList() *pb.Action {
 }
 
 func (h *Handler) TankMove(move *pb.Action_TankMove) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	h.game.TankMove(move.TankMove.Id, move.TankMove.Direction)
 }
 
 func (h *Handler) NewBullet(nb *pb.Action_NewBullet) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	t, ok := h.game.TankBucket[nb.NewBullet.TankId]
 	if !ok {
 		return
@@ -75,6 +85,8 @@ func (h *Handler) NewBullet(nb *pb.Action_NewBullet) {
 
 func (h *Handler) UpdateStatus() []*pb.Action {
 	actions := make([]*pb.Action, 0)
+	h.mu.Lock()
+	defer h.mu.Unlock()
 
 	for _, b := range h.game.BulletBucket {
 		b.Move()
@@ -106,6 +118,24 @@ func (h *Handler) UpdateStatus() []*pb.Action {
 		}
 	}
 
+	//wg := sync.WaitGroup{}
+	//wg.Add(3)
+	//var tl, bl, el *pb.Action
+	//go func() {
+	//	tl = h.UpdateTankList()
+	//	wg.Done()
+	//}()
+	//go func() {
+	//	bl = h.UpdateBulletList()
+	//	wg.Done()
+	//}()
+	//go func() {
+	//	el = h.UpdateExplosion()
+	//	wg.Done()
+	//}()
+	//wg.Wait()
+
+	// 三个 Update 都不用加读锁，因为写锁没有释放
 	actions = append(actions, h.UpdateTankList(), h.UpdateBulletList(), h.UpdateExplosion())
 	return actions
 }

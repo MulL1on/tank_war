@@ -41,7 +41,7 @@ func NewClient(stream quic.Stream, req *pb.JoinRoomReq) {
 
 func (c *Client) readPump() {
 	defer func() {
-		c.room.unregistry <- c
+		c.room.unregister <- c
 		c.stream.Close()
 	}()
 
@@ -49,7 +49,7 @@ func (c *Client) readPump() {
 		data := make([]byte, 1024)
 		_, err := c.stream.Read(data)
 		if err != nil {
-			c.room.unregistry <- c
+			c.room.unregister <- c
 			c.stream.Close()
 			break
 		}
@@ -61,13 +61,13 @@ func (c *Client) readPump() {
 		// read data length
 		var length int32
 		if err = binary.Read(buffer, binary.BigEndian, &length); err != nil {
-			klog.Infof("read data length error", err)
+			klog.Infof("read data length error: %v", err)
 		}
 
 		// read data content
 		data = make([]byte, length)
 		if err = binary.Read(buffer, binary.BigEndian, &data); err != nil {
-			klog.Infof("read data content error", err)
+			klog.Infof("read data content error: %v", err)
 		}
 
 		// 路由到对应的处理函数
@@ -89,7 +89,7 @@ func (c *Client) writePump() {
 			}
 			data, err := proto.Marshal(action)
 			if err != nil {
-				klog.Infof("proto marshal error", err)
+				klog.Infof("proto marshal error: %v", err)
 			}
 
 			buffer := bytes.NewBuffer([]byte{})
@@ -100,20 +100,17 @@ func (c *Client) writePump() {
 			}
 			// write data content
 			if err = binary.Write(buffer, binary.BigEndian, data); err != nil {
-				klog.Infof("write data content error", err)
+				klog.Infof("write data content error: %v", err)
 			}
 
 			n, err := c.stream.Write(buffer.Bytes())
 			if err != nil {
-				klog.Infof("write data error", err)
+				klog.Infof("write data error: %v", err)
 			}
 			if n != len(buffer.Bytes()) {
-				klog.Infof("send length error", err)
+				klog.Infof("send length error: %v", err)
 			}
-			//klog.Infof("send length:", len(data), "total length:", len(buffer.Bytes()))
 			time.Sleep(time.Millisecond * 1)
-			//TODO: 为什么加了这个log就不会出现数据丢失的情况
-			//log.Println("send length:", len(data), "total length:", len(buffer.Bytes()))
 		}
 	}
 }

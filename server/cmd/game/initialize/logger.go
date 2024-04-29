@@ -38,9 +38,9 @@ func InitLogger() {
 	}
 
 	if runtime.GOOS == "linux" {
-		logger.SetOutput(lumberjackLogger)
 		logger.SetLevel(klog.LevelDebug)
 	} else {
+		logger.SetOutput(lumberjackLogger)
 		logger.SetLevel(klog.LevelDebug)
 	}
 	klog.SetLogger(logger)

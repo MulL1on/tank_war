@@ -65,7 +65,6 @@ func (c *Client) ReadMessage() {
 			}
 
 			c.Route(data)
-			//log.Println("read message length: ", length, " data: ", data)
 		}
 	}
 }
@@ -110,6 +109,9 @@ func (c *Client) Route(data []byte) {
 	if err != nil {
 		log.Println(err)
 	}
+
+	// 加锁保护
+
 	switch act := act.Type.(type) {
 	case *pb.Action_GetBulletList:
 		c.handler.GetBulletList(act)
